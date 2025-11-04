@@ -190,17 +190,18 @@ function triggerConfetti() {
         cancelAnimationFrame(window.confettiAnimationId);
     }
     
-    // Confetti particles
+    // Confetti particles - reduced count for mobile
     const particles = [];
-    const particleCount = 30;
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const particleCount = isMobile ? 15 : 30; // Fewer particles on mobile
     
     // Create particles
     for (let i = 0; i < particleCount; i++) {
         particles.push({
             x: Math.random() * canvas.width,
             y: Math.random() * canvas.height - canvas.height,
-            size: Math.random() * 10 + 5,
-            speed: Math.random() * 3 + 2,
+            size: isMobile ? Math.random() * 8 + 3 : Math.random() * 10 + 5, // Smaller particles on mobile
+            speed: isMobile ? Math.random() * 2 + 1 : Math.random() * 3 + 2, // Slower speed on mobile
             color: `hsl(${Math.random() * 360}, 100%, 50%)`,
             rotation: Math.random() * 360,
             rotationSpeed: Math.random() * 10 - 5,
@@ -209,7 +210,20 @@ function triggerConfetti() {
     }
     
     // Animation loop
-    function animate() {
+    // Use requestAnimationFrame with timestamp for better performance
+    let lastTime = 0;
+    const frameRate = isMobile ? 30 : 60; // Lower frame rate on mobile
+    const frameInterval = 1000 / frameRate;
+    
+    function animate(timestamp) {
+        // Throttle frame rate
+        const deltaTime = timestamp - lastTime;
+        if (deltaTime < frameInterval) {
+            window.confettiAnimationId = requestAnimationFrame(animate);
+            return;
+        }
+        lastTime = timestamp - (deltaTime % frameInterval);
+        
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         let stillActive = false;
         
