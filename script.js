@@ -1,19 +1,30 @@
-// Create floating hearts with different styles
+// Create optimized floating hearts
 function createHearts() {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const heart = document.createElement('div');
     const randomHeart = heartStyles[Math.floor(Math.random() * heartStyles.length)];
     
     heart.className = 'heart';
     heart.innerHTML = randomHeart;
     heart.style.left = Math.random() * 100 + 'vw';
-    heart.style.animationDuration = (Math.random() * 5 + 3) + 's';
-    heart.style.animationDelay = (Math.random() * 2) + 's';
-    heart.style.fontSize = (Math.random() * 25 + 15) + 'px';
-    heart.style.opacity = Math.random() * 0.5 + 0.3;
-    heart.style.filter = `hue-rotate(${Math.random() * 60 - 30}deg)`;
     
-    // Add slight rotation and scale variation
-    heart.style.transform = `rotate(${Math.random() * 30 - 15}deg) scale(${Math.random() * 0.5 + 0.8})`;
+    // Reduce animation load on mobile
+    if (isMobile) {
+        heart.style.animationDuration = (Math.random() * 3 + 2) + 's';
+        heart.style.fontSize = (Math.random() * 15 + 10) + 'px';
+    } else {
+        heart.style.animationDuration = (Math.random() * 5 + 3) + 's';
+        heart.style.fontSize = (Math.random() * 25 + 15) + 'px';
+    }
+    
+    heart.style.animationDelay = (Math.random() * 2) + 's';
+    heart.style.opacity = Math.random() * 0.5 + 0.3;
+    
+    // Use transform for better performance
+    const rotation = Math.random() * 30 - 15;
+    const scale = isMobile ? (Math.random() * 0.3 + 0.7) : (Math.random() * 0.5 + 0.8);
+    heart.style.transform = `rotate(${rotation}deg) scale(${scale})`;
+    heart.style.willChange = 'transform, opacity';
     
     document.body.appendChild(heart);
     
@@ -177,22 +188,27 @@ function updateCard() {
     triggerConfetti();
 }
 
-// Confetti effect
+// Optimized confetti effect for mobile
 function triggerConfetti() {
     const canvas = document.getElementById('confetti');
     const ctx = canvas.getContext('2d');
     
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    // Reduce resolution for mobile devices
+    const pixelRatio = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * pixelRatio;
+    canvas.height = window.innerHeight * pixelRatio;
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    ctx.scale(pixelRatio, pixelRatio);
     
     // Clear previous animation
     if (window.confettiAnimationId) {
         cancelAnimationFrame(window.confettiAnimationId);
     }
     
-    // Confetti particles
-    const particles = [];
-    const particleCount = 30;
+    // Adjust particle count based on device performance
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const particleCount = isMobile ? 15 : 30;
     
     // Create particles
     for (let i = 0; i < particleCount; i++) {
